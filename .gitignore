@@ -1,3 +1,4 @@
-BIG.m
-objc.flexible/BIG.m
-objc.flexible/X.html
+*.m
+*.html
+objc.flexible/*.m
+objc.flexible/*.html
