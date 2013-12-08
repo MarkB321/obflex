@@ -29,7 +29,7 @@ nl_brace_else		= add	# "} else" vs "} \n else" - cuddle else
 nl_func_var_def_blk	= 1
 nl_fcall_brace		= add	# "list_for_each() {" vs "list_for_each()\n{"
 nl_fdef_brace		= add	# "int foo() {" vs "int foo()\n{"
-nl_after_return		= TRUE;
+nl_after_return		= True
 nl_before_case	= 1
 
 
@@ -49,10 +49,10 @@ mod_full_brace_nl	= 2		# don't remove if more than 3 newlines
 # inter-character spacing options
 #
 
-sp_return_paren		= force		# "return (1);" vs "return(1);"
+sp_return_paren		= add		# "return (1);" vs "return(1);"
 sp_sizeof_paren		= remove	# "sizeof (int)" vs "sizeof(int)"
-sp_before_sparen	= force		# "if (" vs "if("
-sp_after_sparen		= force		# "if () {" vs "if (){"
+sp_before_sparen	= add		# "if (" vs "if("
+sp_after_sparen		= add		# "if () {" vs "if (){"
 sp_after_cast		= remove	# "(int) a" vs "(int)a"
 sp_inside_braces	= add		# "{ 1 }" vs "{1}"
 sp_inside_braces_struct	= add		# "{ 1 }" vs "{1}"
@@ -63,9 +63,9 @@ sp_bool			= add
 sp_compare		= add
 sp_assign		= add
 sp_after_comma		= add
-sp_func_def_paren	= remove	# "int foo (){" vs "int foo(){"
-sp_func_call_paren	= remove	# "foo (" vs "foo("
-sp_func_proto_paren	= remove	# "int foo ();" vs "int foo();"
+sp_func_def_paren	= add	# "int foo (){" vs "int foo(){"
+sp_func_call_paren	= add	# "foo (" vs "foo("
+sp_func_proto_paren	= add	# "int foo ();" vs "int foo();"
 
 
 #

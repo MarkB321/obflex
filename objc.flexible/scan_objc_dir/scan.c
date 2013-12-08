@@ -55,10 +55,11 @@ int init_scan_top_level (void)
   return 0;
 }
 
-int get_next_file(FILE** objc_file, char* rdt_name)
+int get_next_file(FILE** objc_file, FILE** objc_out_file, char* objc_name)
 {
 static file_count = 0;
 static first_time = 1;
+char * out_name[520];
 int ret;
   if (1 == first_time)
     {
@@ -71,12 +72,26 @@ int ret;
     {
     fclose(*objc_file);
     }
+  if (*objc_out_file != NULL)
+    {
+    fclose(*objc_out_file);
+    }
   if (file_count < g_num_files)
     {
-    strcpy(rdt_name,
+    strcpy(objc_name,
            &g_objc_name[file_count][0]);
-    *objc_file = fopen(rdt_name,
+    *objc_file = fopen(objc_name,
                   "r");
+    strcpy(out_name,
+           objc_name);
+    strcat(out_name,
+           ".instr");
+    *objc_out_file = fopen(out_name,
+                  "w");
+    if ( ! *objc_out_file ) {
+      fprintf(stderr, "failed to open <%s>", out_name);
+      exit(1);
+    }
     file_count++;
     ret = 1;
     }

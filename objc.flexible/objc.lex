@@ -4,12 +4,14 @@
 #include "hash/hashtbl.h"
 *****************/
 
-FILE * g_f_objc;
+FILE * g_f_objc_in;
+FILE * g_f_objc_out;
 char g_objc_name[520];
 
 int g_round_brackets = 0;
 int g_cond_arr[100];
 int g_condition_count = 0;
+int g_instrument = 0;
 
 #define PUSH 1
 #define POP 2
@@ -30,6 +32,13 @@ If you see "push_condition_and_print_with_font" then we can climb out of that co
 */
 %%
 
+"{" {
+  fprintf(stdout,  "%s", yytext);
+  fprintf(stdout,  "\nNSLog(@\"INSTRUMENT \%d \");", g_instrument);
+  fprintf(g_f_objc_out,  "%s", yytext);
+  fprintf(g_f_objc_out,  "\nNSLog(@\"INSTRUMENT \%d \");", g_instrument++);
+}
+
 "(" {
   g_round_brackets++;
   push_condition_and_print_with_font(round_brackets, 1, 1);
@@ -48,38 +57,45 @@ If you see "push_condition_and_print_with_font" then we can climb out of that co
 }
 
 <c_comment>[^*\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 <c_comment>"*"+[^*/\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 <c_comment>"*"+"/" {
          pop_condition(1, 1);
          }
 
 <cpp_comment>"*"+[^*/\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 <cpp_comment>"\n" {
          pop_condition(1, 1);
          }
 <cpp_comment>[^*\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 
 <hat_hash>"*"+[^*/\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 <hat_hash>"\n" {
          pop_condition(1, 1);
          }
 <hat_hash>[^*\n]* {
-         printf( "%s", yytext);
+         fprintf(stdout,  "%s", yytext);
+         fprintf(g_f_objc_out,  "%s", yytext);
          }
 
 <round_brackets>"(" {
   g_round_brackets++;
-  printf( "%s", yytext);
+  fprintf(stdout,  "%s", yytext);
+  fprintf(g_f_objc_out,  "%s", yytext);
 }
 <round_brackets>")" {
   g_round_brackets--;
@@ -87,7 +103,8 @@ If you see "push_condition_and_print_with_font" then we can climb out of that co
     pop_condition(1, 1);
   }
   else {
-    printf( "%s", yytext);
+    fprintf(stdout,  "%s", yytext);
+    fprintf(g_f_objc_out,  "%s", yytext);
   }
 }
 <round_brackets>"/*" {
@@ -104,17 +121,12 @@ If you see "push_condition_and_print_with_font" then we can climb out of that co
 }
 <INITIAL,round_brackets>{VARNAME}* {
   if ( ! strcmp(yytext,"if") ) {
-/****************
-    printf( "%s%s%s", "<font color=\"red\">IF1</font>",yytext,"<font color=\"red\">IF2</font>");
-*************/
     push_condition_and_print_with_font(ifkeyword, 1, 1);
   } else if ( ! strcmp(yytext,"else") ) {
-/****************
-    printf( "%s%s%s", "<font color=\"red\">ELSE1</font>",yytext,"<font color=\"red\">ELSE2</font>");
-*************/
     push_condition_and_print_with_font(elsekeyword, 1, 1);
   } else {
-    printf( "%s", yytext);
+    fprintf(stdout,  "%s", yytext);
+    fprintf(g_f_objc_out,  "%s", yytext);
   }
 }
 
@@ -137,25 +149,25 @@ int font_colour(int condition)
   switch(condition)
   {
   case round_brackets:
-      printf("<font color=\"red\">");
+      fprintf(stdout, "<font color=\"red\">");
   break;
   case c_comment:
-    printf("<font color=\"yellow\">");
+    fprintf(stdout, "<font color=\"yellow\">");
   break;
   case cpp_comment:
-    printf("<font color=\"yellow\">");
+    fprintf(stdout, "<font color=\"yellow\">");
   break;
   case hat_hash:
-    printf("<font color=\"purple\">");
+    fprintf(stdout, "<font color=\"purple\">");
   break;
   case double_quotes:
-    printf("<font color=\"green\">");
+    fprintf(stdout, "<font color=\"green\">");
   break;
   case ifkeyword:
-    printf("<font color=\"blue\">");
+    fprintf(stdout, "<font color=\"blue\">");
   break;
   case elsekeyword:
-    printf("<font color=\"orange\">");
+    fprintf(stdout, "<font color=\"orange\">");
   break;
   default:
   break;
@@ -164,13 +176,14 @@ int font_colour(int condition)
 
 int font_end()
 {
-  printf("</font>");
+  fprintf(stdout, "</font>");
 }
 
 int pop_condition(int print, int withFont)
 {
   if (print) {
-    printf( "%s", yytext);
+    fprintf(stdout,  "%s", yytext);
+    fprintf(g_f_objc_out,  "%s", yytext);
   }
 
   if (withFont) {
@@ -186,9 +199,6 @@ int pop_condition(int print, int withFont)
     BEGIN(g_cond_arr[g_condition_count-1]);
   }
   else {
-/************
-printf( "popped to bottom");
-************/
     BEGIN(0);
   }
 }
@@ -203,7 +213,8 @@ int push_condition_and_print_with_font(int condition, int doPrint, int withFont)
   }
   BEGIN(g_cond_arr[g_condition_count-1]);
   if (doPrint) {
-    printf( "%s", yytext);
+    fprintf(stdout,  "%s", yytext);
+    fprintf(g_f_objc_out,  "%s", yytext);
   }
 }
 
@@ -213,25 +224,27 @@ char **argv;
 {
 int objc_count=0;
   ++argv, --argc;  /* skip over program name */
-  g_f_objc = NULL;
+  g_f_objc_in = NULL;
 
    while (
          (objc_count < 100)
           &&
-         (1 == get_next_file(&g_f_objc, g_objc_name))
+         (1 == get_next_file(&g_f_objc_in, &g_f_objc_out, g_objc_name))
          )
      {
      fprintf(stderr, "FLEX [%d]%s\n", objc_count, g_objc_name);
      /*
      Let the dog see the rabbit
      */
-     yyin = g_f_objc;
+     yyin = g_f_objc_in;
 
-     printf("<pre>\n");
+     fprintf(stdout, "<pre>\n");
      yylex();
-     printf("</pre>\n");
+     fprintf(stdout, "</pre>\n");
 
      objc_count++;
      }
 }
+
+
 

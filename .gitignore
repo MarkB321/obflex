@@ -1,4 +1,3 @@
-*.m
-*.html
-objc.flexible/*.m
-objc.flexible/*.html
+**/*.o
+**/*.m
+**/*.html
